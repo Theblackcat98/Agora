@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.newoether.agora.R
 import com.newoether.agora.model.ChatConversation
+import com.newoether.agora.model.ContextBudget
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import com.newoether.agora.ui.theme.ChatType
 
@@ -61,7 +62,8 @@ internal fun ChatTopBar(
     conversations: List<ChatConversation>,
     currentConversationId: String?,
     currentConversationTitle: String? = null,
-    totalTokens: Int,
+    contextEstimatedTokens: Int,
+    contextTokenBudget: Int,
     searchActive: Boolean = false,
     searchQuery: String = "",
     searchMatchIndex: Int = -1,
@@ -288,13 +290,25 @@ internal fun ChatTopBar(
                                     text = resolvedTitle,
                                     // Single-line (no token subtitle) uses a slightly-smaller-than-brand
                                     // solo size; with the token subtitle stacked below, the compact size.
-                                    style = if (totalTokens > 0) ChatType.conversationTitle else ChatType.conversationTitleSolo,
+                                    style = if (contextEstimatedTokens > 0) ChatType.conversationTitle else ChatType.conversationTitleSolo,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                                if (totalTokens > 0) {
+                                if (contextEstimatedTokens > 0) {
+                                    val usageText = if (contextTokenBudget > 0) {
+                                        stringResource(
+                                            R.string.context_usage_header,
+                                            ContextBudget.compactLabel(contextEstimatedTokens),
+                                            ContextBudget.compactLabel(contextTokenBudget)
+                                        )
+                                    } else {
+                                        stringResource(
+                                            R.string.context_usage_header_unbounded,
+                                            ContextBudget.compactLabel(contextEstimatedTokens)
+                                        )
+                                    }
                                     Text(
-                                        text = stringResource(R.string.total_tokens, totalTokens),
+                                        text = usageText,
                                         style = ChatType.micro,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                         maxLines = 1

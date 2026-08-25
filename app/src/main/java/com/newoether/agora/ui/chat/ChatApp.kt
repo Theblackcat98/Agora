@@ -419,7 +419,8 @@ fun ChatApp(
                         currentConversationTitle = currentConversation?.title?.let {
                             replaceCustomProviderIdsForDisplay(it, customProviders)
                         },
-                        totalTokens = totalTokens,
+                        contextEstimatedTokens = contextUsage.estimatedTokenCount,
+                        contextTokenBudget = contextUsage.tokenBudget,
                         searchActive = conversationSearchActive,
                         searchQuery = conversationSearchQuery,
                         searchMatchIndex = conversationSearchMatchIndex,

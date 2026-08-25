@@ -1099,6 +1099,8 @@
     <string name="thinking_segment_display_bottom_sheet">Panneau inférieur</string>
     <string name="thinking_segments_title">Segments de réflexion</string>
     <string name="context_usage_messages">~%1$s / %2$s jetons</string>
+    <string name="context_usage_header">~%1$s / %2$s jetons</string>
+    <string name="context_usage_header_unbounded">~%1$s / %2$s jetons</string>
     <string name="context_compact_streaming">Compactage du contexte…</string>
     <string name="context_compact_error">Erreur de compactage</string>
     <string name="context_compact_stopped">Compactage arrêté</string>

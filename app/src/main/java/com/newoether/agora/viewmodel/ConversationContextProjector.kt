@@ -123,12 +123,25 @@ internal class ConversationContextProjector(
             } else {
                 snapshot?.config?.maxContextWindow ?: com.newoether.agora.model.ContextBudget.DEFAULT_TOKENS
             }
+            // Prefer provider-reported token usage from the last completed model message when
+            // available. This gives the composer circle and compaction thresholds authoritative
+            // input counts rather than heuristic estimates after the first generation.
+            val lastReportedUsage = durableProviderMessages
+                .lastOrNull { it.tokenUsage != null }
+                ?.tokenUsage
+            val baseUsage = contextWindowUsage(
+                messages = contextMessages,
+                tokenBudget = effectiveBudget,
+                fixedTokenCost = fixedTokenCost,
+            )
             ConversationContextProjection(
                 inputs = inputs.copy(tokenBudget = effectiveBudget),
-                usage = contextWindowUsage(
-                    messages = contextMessages,
-                    tokenBudget = effectiveBudget,
-                    fixedTokenCost = fixedTokenCost,
+                usage = ContextUsage.fromTokenUsage(
+                    estimatedTokenCount = baseUsage.estimatedTokenCount,
+                    tokenBudget = baseUsage.tokenBudget,
+                    reportedUsage = lastReportedUsage,
+                    logicalMessageCount = baseUsage.logicalMessageCount,
+                    hasCompactBoundary = baseUsage.hasCompactBoundary,
                 ),
                 retainedMessageIds = contextWindowRetainedMessageIds(
                     messages = contextMessages,

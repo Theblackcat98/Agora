@@ -17,18 +17,56 @@ data class ContextUsage(
     val tokenBudget: Int,
     val logicalMessageCount: Int = 0,
     val hasCompactBoundary: Boolean = false,
+    /**
+     * Authoritative input-token count reported by the provider after the most recent generation.
+     * When non-null this is preferred over [estimatedTokenCount] for progress and threshold
+     * calculations.  The estimate is still retained for display when the authoritative value is
+     * unavailable (e.g. first turn, streaming in progress).
+     */
+    val authoritativeInputTokenCount: Int? = null,
 ) {
+    /** True when a provider-reported count is available and should be preferred over the estimate. */
+    val isAuthoritative: Boolean get() = authoritativeInputTokenCount != null
+
+    /** The token count to use for progress/threshold decisions — authoritative when available. */
+    val effectiveTokenCount: Int
+        get() = authoritativeInputTokenCount ?: estimatedTokenCount
+
     val progress: Float
         get() = if (tokenBudget <= 0) 0f else
-            (estimatedTokenCount.toFloat() / tokenBudget).coerceIn(0f, 1f)
+            (effectiveTokenCount.toFloat() / tokenBudget).coerceIn(0f, 1f)
 
     fun exceedsCompactThreshold(thresholdPercent: Int): Boolean {
         if (tokenBudget <= 0) return false
         val threshold = automaticCompactTokenThreshold(tokenBudget, thresholdPercent)
-        return estimatedTokenCount >= threshold
+        return effectiveTokenCount >= threshold
     }
 
-    fun isAtCapacity(): Boolean = tokenBudget > 0 && estimatedTokenCount >= tokenBudget
+    fun isAtCapacity(): Boolean = tokenBudget > 0 && effectiveTokenCount >= tokenBudget
+
+    companion object {
+        /**
+         * Create a [ContextUsage] that incorporates a provider-reported [TokenUsage].
+         * The authoritative input count is set when the provider supplied a non-zero value.
+         */
+        fun fromTokenUsage(
+            estimatedTokenCount: Int,
+            tokenBudget: Int,
+            reportedUsage: com.newoether.agora.model.TokenUsage?,
+            logicalMessageCount: Int = 0,
+            hasCompactBoundary: Boolean = false,
+        ): ContextUsage {
+            val authoritative = reportedUsage?.inputTokenCount
+                ?.takeIf { it > 0 }
+            return ContextUsage(
+                estimatedTokenCount = estimatedTokenCount,
+                tokenBudget = tokenBudget,
+                logicalMessageCount = logicalMessageCount,
+                hasCompactBoundary = hasCompactBoundary,
+                authoritativeInputTokenCount = authoritative,
+            )
+        }
+    }
 }
 
 typealias ContextWindowUsage = ContextUsage

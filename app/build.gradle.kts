@@ -201,3 +201,17 @@ tasks.whenTaskAdded {
         enabled = false
     }
 }
+
+tasks.register<Exec>("buildProot") {
+    group = "build"
+    description = "Builds PRoot binaries before the main build."
+    workingDir = rootProject.projectDir
+    commandLine("./build-proot.sh")
+    outputs.dir(project.file("src/main/jniLibs/arm64-v8a"))
+}
+
+project.afterEvaluate {
+    tasks.named("preBuild") {
+        dependsOn("buildProot")
+    }
+}

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.newoether.agora.R
+import com.newoether.agora.api.util.ContextUsage
 import com.newoether.agora.model.ChatConversation
 import com.newoether.agora.model.ContextBudget
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
@@ -62,8 +63,7 @@ internal fun ChatTopBar(
     conversations: List<ChatConversation>,
     currentConversationId: String?,
     currentConversationTitle: String? = null,
-    contextEstimatedTokens: Int,
-    contextTokenBudget: Int,
+    contextUsage: ContextUsage = ContextUsage(0, ContextBudget.DEFAULT_TOKENS, 0, false),
     searchActive: Boolean = false,
     searchQuery: String = "",
     searchMatchIndex: Int = -1,
@@ -290,21 +290,21 @@ internal fun ChatTopBar(
                                     text = resolvedTitle,
                                     // Single-line (no token subtitle) uses a slightly-smaller-than-brand
                                     // solo size; with the token subtitle stacked below, the compact size.
-                                    style = if (contextEstimatedTokens > 0) ChatType.conversationTitle else ChatType.conversationTitleSolo,
+                                    style = if (contextUsage.estimatedTokenCount > 0) ChatType.conversationTitle else ChatType.conversationTitleSolo,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                                if (contextEstimatedTokens > 0) {
-                                    val usageText = if (contextTokenBudget > 0) {
+                                if (contextUsage.estimatedTokenCount > 0) {
+                                    val usageText = if (contextUsage.tokenBudget > 0) {
                                         stringResource(
                                             R.string.context_usage_header,
-                                            ContextBudget.compactLabel(contextEstimatedTokens),
-                                            ContextBudget.compactLabel(contextTokenBudget)
+                                            ContextBudget.compactLabel(contextUsage.estimatedTokenCount),
+                                            ContextBudget.compactLabel(contextUsage.tokenBudget)
                                         )
                                     } else {
                                         stringResource(
                                             R.string.context_usage_header_unbounded,
-                                            ContextBudget.compactLabel(contextEstimatedTokens)
+                                            ContextBudget.compactLabel(contextUsage.estimatedTokenCount)
                                         )
                                     }
                                     Text(
@@ -405,6 +405,54 @@ internal fun ChatTopBar(
         }
     }
 }
+
+@Composable
+internal fun ChatTopBar(
+    isNewChatMode: Boolean,
+    conversations: List<ChatConversation>,
+    currentConversationId: String?,
+    currentConversationTitle: String? = null,
+    contextEstimatedTokens: Int,
+    contextTokenBudget: Int,
+    searchActive: Boolean = false,
+    searchQuery: String = "",
+    searchMatchIndex: Int = -1,
+    searchMatchCount: Int = 0,
+    conversationActionsEnabled: Boolean = false,
+    onNavigateBack: (() -> Unit)? = null,
+    onOpenDrawer: () -> Unit,
+    onSearchQueryChange: (String) -> Unit = {},
+    onSearchPrevious: () -> Unit = {},
+    onSearchNext: () -> Unit = {},
+    onSearchDismiss: () -> Unit = {},
+    onSearchClick: () -> Unit = {},
+    onSystemPromptClick: () -> Unit,
+    onForkConversation: () -> Unit = {},
+    onShareConversation: () -> Unit = {},
+    onNewChat: () -> Unit,
+) = ChatTopBar(
+    isNewChatMode = isNewChatMode,
+    conversations = conversations,
+    currentConversationId = currentConversationId,
+    currentConversationTitle = currentConversationTitle,
+    contextUsage = ContextUsage(contextEstimatedTokens, contextTokenBudget, 0, false),
+    searchActive = searchActive,
+    searchQuery = searchQuery,
+    searchMatchIndex = searchMatchIndex,
+    searchMatchCount = searchMatchCount,
+    conversationActionsEnabled = conversationActionsEnabled,
+    onNavigateBack = onNavigateBack,
+    onOpenDrawer = onOpenDrawer,
+    onSearchQueryChange = onSearchQueryChange,
+    onSearchPrevious = onSearchPrevious,
+    onSearchNext = onSearchNext,
+    onSearchDismiss = onSearchDismiss,
+    onSearchClick = onSearchClick,
+    onSystemPromptClick = onSystemPromptClick,
+    onForkConversation = onForkConversation,
+    onShareConversation = onShareConversation,
+    onNewChat = onNewChat,
+)
 
 @Composable
 private fun ChatTopBarCapsule(

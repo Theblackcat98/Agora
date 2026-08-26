@@ -1,5 +1,6 @@
 package com.newoether.agora.viewmodel
 
+import com.newoether.agora.api.util.automaticCompactTokenThreshold
 import com.newoether.agora.data.local.MessageEntity
 import com.newoether.agora.model.MessageSegment
 import com.newoether.agora.model.MessageStatus

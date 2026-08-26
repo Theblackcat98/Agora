@@ -1,5 +1,6 @@
 package com.newoether.agora.viewmodel
 
+import com.newoether.agora.api.util.automaticCompactTokenThreshold
 import com.newoether.agora.api.util.contextWindowUsage
 import com.newoether.agora.api.util.projectGenerationStatusesForApi
 import com.newoether.agora.api.util.splitContextForCompactRetention
@@ -120,16 +121,6 @@ internal fun interface ContextCompactOperation {
     ): Boolean
 }
 
-internal fun automaticCompactTokenThreshold(
-    contextLimit: Int,
-    thresholdPercent: Int,
-): Int {
-    val normalizedLimit = contextLimit.coerceAtLeast(1)
-    val normalizedPercent = thresholdPercent.coerceIn(50, 100)
-    return ((normalizedLimit.toLong() * normalizedPercent + 99L) / 100L)
-        .coerceIn(1L, Int.MAX_VALUE.toLong())
-        .toInt()
-}
 
 internal fun automaticCompactNeeded(
     entities: List<MessageEntity>,

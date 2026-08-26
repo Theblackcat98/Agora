@@ -516,6 +516,43 @@ class ConversationContextProjectorTest {
         assertEquals(projection, projector.projection.value)
     }
 
+    @Test
+    fun projectionWithContextProjectionInputsPreservesInputsAndComputesUsage() = runTest {
+        val conversations = mockk<ConversationRepository>()
+        val requestBuilder = mockk<GenerationRequestBuilder>()
+        val generationManager = mockk<GenerationManager>()
+        val admission = testGenerationAdmissionSnapshot(
+            conversationId = "context-preview-conversation",
+        )
+        val snapshot = GenerationContextProjectionSnapshot(admission.config, admission.context)
+        coEvery {
+            requestBuilder.captureContextProjectionSnapshot(
+                "context-preview-conversation",
+                "provider:model",
+                null,
+            )
+        } returns snapshot
+        every { generationManager.fixedContextTokenCost(snapshot.config, snapshot.context) } returns 150
+        val projector = ConversationContextProjector(
+            conversations = conversations,
+            requestBuilder = requestBuilder,
+            generationManager = { generationManager },
+        )
+
+        val inputs = ContextProjectionInputs(
+            conversationId = null,
+            selectedBranchesJson = null,
+            selectedModelId = "provider:model",
+            tokenBudget = 8_192,
+        )
+        val projection = projector.project(inputs)
+
+        assertEquals(inputs, projection.inputs)
+        assertEquals(150, requireNotNull(projection.usage).estimatedTokenCount)
+        assertEquals(8_192, requireNotNull(projection.usage).tokenBudget)
+        assertFalse(requireNotNull(projection.usage).exceedsCompactThreshold(90))
+    }
+
     private fun entity(
         id: String,
         parentId: String?,

@@ -1,20 +1,7 @@
 package com.newoether.agora.ui.chat
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -68,11 +55,10 @@ import com.newoether.agora.viewmodel.AnimatedScrollDestination
 import com.newoether.agora.viewmodel.ChatViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.newoether.agora.api.util.ContextUsage
+import com.newoether.agora.viewmodel.ContextProjectionInputs
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChatApp(
     viewModel: ChatViewModel,
@@ -188,13 +174,22 @@ fun ChatApp(
     val webSearchEnabled = globalWebSearch && (convOverride?.webSearchEnabled ?: true)
     val shellEnabled = globalShell && (convOverride?.shellEnabled ?: true)
     val contextWindow = ContextBudget.normalize(convOverride?.contextWindow ?: maxContextWindow)
-    val contextProjectionKey = rememberContextProjectionInvalidationKey(viewModel, listOf(codeExecutionEnabled, googleSearchEnabled, webSearchEnabled, shellEnabled, shellDevices, currentConversation?.systemPromptId))
+    val contextProjectionKey = rememberContextProjectionInvalidationKey(
+        viewModel,
+        listOf(codeExecutionEnabled, googleSearchEnabled, webSearchEnabled, shellEnabled, shellDevices, currentConversation?.systemPromptId),
+    )
     val contextProjection by viewModel.conversationContextProjection.collectAsState()
-    LaunchedEffect(currentConversationId, currentConversation?.selectedBranchesJson, selectedModel, contextWindow, allMessagesState.value, contextProjectionKey) {
-        viewModel.requestConversationContext(currentConversationId, currentConversation?.selectedBranchesJson, selectedModel, contextWindow)
+    val contextProjectionInputs = ContextProjectionInputs(
+        conversationId = currentConversationId,
+        selectedBranchesJson = currentConversation?.selectedBranchesJson,
+        selectedModelId = selectedModel,
+        tokenBudget = contextWindow,
+    )
+    LaunchedEffect(contextProjectionInputs, allMessagesState.value, contextProjectionKey) {
+        viewModel.requestConversationContext(contextProjectionInputs)
     }
     val contextProjectionReady = contextProjection.completed && !contextProjection.loading && !contextProjection.failed && contextProjection.conversationId == currentConversationId && contextProjection.selectedBranchesJson == currentConversation?.selectedBranchesJson
-    val contextUsage = contextProjection.usage ?: com.newoether.agora.api.util.ContextWindowUsage(0, contextWindow, 0, false)
+    val contextUsage = contextProjection.usage ?: ContextUsage(0, contextWindow, 0, false)
     val blurEffectsEnabled by viewModel.settings.blurEffectsEnabled.collectAsState()
     val stickToBottom by viewModel.settings.stickToBottom.collectAsState()
     val reduceMotion = motionPolicy.reduceMotion
@@ -419,8 +414,7 @@ fun ChatApp(
                         currentConversationTitle = currentConversation?.title?.let {
                             replaceCustomProviderIdsForDisplay(it, customProviders)
                         },
-                        contextEstimatedTokens = contextUsage.estimatedTokenCount,
-                        contextTokenBudget = contextUsage.tokenBudget,
+                        contextUsage = contextUsage,
                         searchActive = conversationSearchActive,
                         searchQuery = conversationSearchQuery,
                         searchMatchIndex = conversationSearchMatchIndex,
@@ -957,8 +951,7 @@ fun ChatApp(
                         compactDefaultModel = compactModel,
                         compactDefaultPrompt = compactPrompt,
                         compactDefaultRetainCount = compactRetainCount,
-                        contextEstimatedTokens = contextUsage.estimatedTokenCount,
-                        contextTokenBudget = contextUsage.tokenBudget,
+                        contextUsage = contextUsage,
                         contextCompactThresholdPercent = compactThresholdPercent,
                         canCompact = currentConversationId != null && !isLoading && !isSwitching && !isStopping,
                         onCompactClick = {

@@ -88,15 +88,34 @@ internal val CHAT_BOTTOM_BAR_OUTER_RADIUS = 28.dp
 internal val CHAT_BOTTOM_BAR_OUTER_SHAPE = RoundedCornerShape(CHAT_BOTTOM_BAR_OUTER_RADIUS)
 internal val CHAT_DROPDOWN_MENU_SHAPE = RoundedCornerShape(16.dp)
 
+import com.newoether.agora.api.util.ContextUsage
+
 internal fun contextUsageExceedsCompactThreshold(
-    estimatedTokens: Int, tokenBudget: Int, thresholdPercent: Int,
-): Boolean {
-    val normalizedBudget = tokenBudget.coerceAtLeast(1)
-    val normalizedPercent = thresholdPercent.coerceIn(50, 100)
-    val threshold = ((normalizedBudget.toLong() * normalizedPercent + 99L) / 100L)
-        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-    return tokenBudget > 0 && estimatedTokens > threshold
-}
+    contextUsage: ContextUsage,
+    thresholdPercent: Int,
+): Boolean = contextUsage.exceedsCompactThreshold(thresholdPercent)
+
+internal fun contextUsageExceedsCompactThreshold(
+    estimatedTokens: Int,
+    tokenBudget: Int,
+    thresholdPercent: Int,
+): Boolean = ContextUsage(
+    estimatedTokenCount = estimatedTokens,
+    tokenBudget = tokenBudget,
+    logicalMessageCount = 0,
+    hasCompactBoundary = false,
+).exceedsCompactThreshold(thresholdPercent)
+
+internal fun contextUsageAtCapacity(contextUsage: ContextUsage): Boolean =
+    contextUsage.isAtCapacity()
+
+internal fun contextUsageAtCapacity(estimatedTokens: Int, tokenBudget: Int): Boolean =
+    ContextUsage(
+        estimatedTokenCount = estimatedTokens,
+        tokenBudget = tokenBudget,
+        logicalMessageCount = 0,
+        hasCompactBoundary = false,
+    ).isAtCapacity()
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -163,9 +182,7 @@ fun ChatBottomBar(
     onAdvancedClick: () -> Unit = {},
     compactDefaultModel: String? = null,
     compactDefaultPrompt: String = "",
-    compactDefaultRetainCount: Int = 6,
-    contextEstimatedTokens: Int = 0,
-    contextTokenBudget: Int = ContextBudget.DEFAULT_TOKENS,
+    contextUsage: ContextUsage = ContextUsage(0, ContextBudget.DEFAULT_TOKENS, 0, false),
     contextCompactThresholdPercent: Int = 90,
     canCompact: Boolean = false,
     onCompactClick: () -> Unit = {},
@@ -506,21 +523,13 @@ fun ChatBottomBar(
                 }
                 
                 val contextProgressColor = if (
-                    contextUsageExceedsCompactThreshold(
-                        contextEstimatedTokens,
-                        contextTokenBudget,
-                        contextCompactThresholdPercent,
-                    )
+                    contextUsage.exceedsCompactThreshold(contextCompactThresholdPercent)
                 ) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.primary
                 }
-                val contextProgressTarget = if (contextTokenBudget <= 0) {
-                    0f
-                } else {
-                    (contextEstimatedTokens.toFloat() / contextTokenBudget).coerceIn(0f, 1f)
-                }
+                val contextProgressTarget = contextUsage.progress
                 val contextProgress by animateFloatAsState(
                     targetValue = contextProgressTarget,
                     animationSpec = if (motionPolicy.allowContinuousMotion) {
@@ -586,8 +595,8 @@ fun ChatBottomBar(
                             Text(
                                 text = stringResource(
                                     R.string.context_usage_messages,
-                                    ContextBudget.compactLabel(contextEstimatedTokens),
-                                    ContextBudget.compactLabel(contextTokenBudget),
+                                    ContextBudget.compactLabel(contextUsage.estimatedTokenCount),
+                                    ContextBudget.compactLabel(contextUsage.tokenBudget),
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                             )

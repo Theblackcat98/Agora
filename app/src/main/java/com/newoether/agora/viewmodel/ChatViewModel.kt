@@ -673,21 +673,20 @@ class ChatViewModel(
     internal val conversationContextProjection: StateFlow<ConversationContextProjection>
         get() = contextProjector.projection
 
+    internal fun requestConversationContext(inputs: ContextProjectionInputs) {
+        viewModelScope.launch {
+            contextProjector.project(inputs)
+        }
+    }
+
     internal fun requestConversationContext(
         conversationId: String?,
         selectedBranchesJson: String?,
         selectedModelId: String,
         tokenBudget: Int,
-    ) {
-        viewModelScope.launch {
-            contextProjector.project(
-                conversationId,
-                selectedBranchesJson,
-                selectedModelId,
-                tokenBudget,
-            )
-        }
-    }
+    ) = requestConversationContext(
+        ContextProjectionInputs(conversationId, selectedBranchesJson, selectedModelId, tokenBudget),
+    )
 
     private val generationController by lazy {
         MessageGenerationController(

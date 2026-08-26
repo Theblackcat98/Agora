@@ -1,6 +1,6 @@
 package com.newoether.agora.viewmodel
 
-import com.newoether.agora.api.util.ContextWindowUsage
+import com.newoether.agora.api.util.ContextUsage
 import com.newoether.agora.api.util.contextWindowRetainedMessageIds
 import com.newoether.agora.api.util.contextWindowUsage
 import com.newoether.agora.data.repository.ConversationRepository
@@ -11,14 +11,39 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.atomic.AtomicLong
 
 internal data class ConversationContextProjection(
-    val conversationId: String? = null,
-    val selectedBranchesJson: String? = null,
-    val usage: ContextWindowUsage? = null,
+    val inputs: ContextProjectionInputs = ContextProjectionInputs(),
+    val usage: ContextUsage? = null,
     val retainedMessageIds: Set<String>? = null,
     val loading: Boolean = false,
     val completed: Boolean = false,
     val failed: Boolean = false,
-)
+) {
+    constructor(
+        conversationId: String?,
+        selectedBranchesJson: String?,
+        usage: ContextUsage?,
+        retainedMessageIds: Set<String>?,
+        loading: Boolean = false,
+        completed: Boolean = false,
+        failed: Boolean = false,
+    ) : this(
+        inputs = ContextProjectionInputs(
+            conversationId = conversationId,
+            selectedBranchesJson = selectedBranchesJson,
+            tokenBudget = usage?.tokenBudget ?: com.newoether.agora.model.ContextBudget.DEFAULT_TOKENS,
+        ),
+        usage = usage,
+        retainedMessageIds = retainedMessageIds,
+        loading = loading,
+        completed = completed,
+        failed = failed,
+    )
+
+    val conversationId: String? get() = inputs.conversationId
+    val selectedBranchesJson: String? get() = inputs.selectedBranchesJson
+    val selectedModelId: String get() = inputs.selectedModelId
+    val tokenBudget: Int get() = inputs.tokenBudget
+}
 
 /** Builds UI context accounting from the same canonical durable projection used by generation. */
 internal class ConversationContextProjector(
@@ -37,34 +62,28 @@ internal class ConversationContextProjector(
         val previousUsage = _projection.value.usage
         requestIds.incrementAndGet()
         _projection.value = ConversationContextProjection(
-            conversationId = conversationId,
+            inputs = ContextProjectionInputs(conversationId = conversationId),
             usage = previousUsage,
             loading = true,
         )
     }
 
-    suspend fun project(
-        conversationId: String?,
-        selectedBranchesJson: String?,
-        selectedModelId: String,
-        tokenBudget: Int,
-    ): ConversationContextProjection {
+    suspend fun project(inputs: ContextProjectionInputs): ConversationContextProjection {
         val previousUsage = _projection.value.usage
         val requestId = requestIds.incrementAndGet()
         _projection.value = ConversationContextProjection(
-            conversationId = conversationId,
-            selectedBranchesJson = selectedBranchesJson,
+            inputs = inputs,
             usage = previousUsage,
             loading = true,
         )
         val result = try {
-            val effectiveConversationId = conversationId ?: CONTEXT_PREVIEW_CONVERSATION_ID
-            val snapshot = selectedModelId.takeIf(String::isNotBlank)?.let { modelId ->
+            val effectiveConversationId = inputs.conversationId ?: CONTEXT_PREVIEW_CONVERSATION_ID
+            val snapshot = inputs.selectedModelId.takeIf(String::isNotBlank)?.let { modelId ->
                 try {
                     requestBuilder.captureContextProjectionSnapshot(
                         conversationId = effectiveConversationId,
                         modelId = modelId,
-                        systemPromptIdOverride = if (conversationId == null) {
+                        systemPromptIdOverride = if (inputs.conversationId == null) {
                             newChatSystemPromptId()
                         } else {
                             null
@@ -76,7 +95,7 @@ internal class ConversationContextProjector(
                     null
                 }
             }
-            val durableProviderMessages = conversationId?.let {
+            val durableProviderMessages = inputs.conversationId?.let {
                 contextLoader.load(
                     DurableSelectedContextRequest(
                         conversationId = it,
@@ -100,16 +119,15 @@ internal class ConversationContextProjector(
                 generationManager().fixedContextTokenCost(it.config, it.context)
             } ?: 0
             ConversationContextProjection(
-                conversationId = conversationId,
-                selectedBranchesJson = selectedBranchesJson,
+                inputs = inputs,
                 usage = contextWindowUsage(
                     messages = contextMessages,
-                    tokenBudget = tokenBudget,
+                    tokenBudget = inputs.tokenBudget,
                     fixedTokenCost = fixedTokenCost,
                 ),
                 retainedMessageIds = contextWindowRetainedMessageIds(
                     messages = contextMessages,
-                    tokenBudget = tokenBudget,
+                    tokenBudget = inputs.tokenBudget,
                     fixedTokenCost = fixedTokenCost,
                 ),
                 completed = true,
@@ -118,8 +136,7 @@ internal class ConversationContextProjector(
             throw cancelled
         } catch (_: Exception) {
             ConversationContextProjection(
-                conversationId = conversationId,
-                selectedBranchesJson = selectedBranchesJson,
+                inputs = inputs,
                 completed = true,
                 failed = true,
             )
@@ -129,6 +146,20 @@ internal class ConversationContextProjector(
         }
         return result
     }
+
+    suspend fun project(
+        conversationId: String?,
+        selectedBranchesJson: String?,
+        selectedModelId: String,
+        tokenBudget: Int,
+    ): ConversationContextProjection = project(
+        ContextProjectionInputs(
+            conversationId = conversationId,
+            selectedBranchesJson = selectedBranchesJson,
+            selectedModelId = selectedModelId,
+            tokenBudget = tokenBudget,
+        ),
+    )
 
     private companion object {
         const val CONTEXT_PREVIEW_CONVERSATION_ID = "context-preview-conversation"

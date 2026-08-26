@@ -95,11 +95,14 @@ class CompactMessagePresentationTest {
 
     @Test
     fun contextProgressUsesConfiguredCompactThresholdBoundaries() {
-        assertFalse(contextUsageExceedsCompactThreshold(50, 100, 50))
+        assertFalse(contextUsageExceedsCompactThreshold(49, 100, 50))
+        assertTrue(contextUsageExceedsCompactThreshold(50, 100, 50))
         assertTrue(contextUsageExceedsCompactThreshold(51, 100, 50))
-        assertFalse(contextUsageExceedsCompactThreshold(90, 100, 90))
+        assertFalse(contextUsageExceedsCompactThreshold(89, 100, 90))
+        assertTrue(contextUsageExceedsCompactThreshold(90, 100, 90))
         assertTrue(contextUsageExceedsCompactThreshold(91, 100, 90))
-        assertFalse(contextUsageExceedsCompactThreshold(100, 100, 100))
+        assertFalse(contextUsageExceedsCompactThreshold(99, 100, 100))
+        assertTrue(contextUsageExceedsCompactThreshold(100, 100, 100))
         assertFalse(contextUsageExceedsCompactThreshold(1, 0, 90))
     }
 

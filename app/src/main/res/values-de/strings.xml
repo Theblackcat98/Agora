@@ -1101,6 +1101,8 @@
     <string name="thinking_segment_display_bottom_sheet">Unteres Dialogfeld</string>
     <string name="thinking_segments_title">Denksegmente</string>
     <string name="context_usage_messages">~%1$s / %2$s Tokens</string>
+    <string name="context_usage_header">~%1$s / %2$s Tokens</string>
+    <string name="context_usage_header_unbounded">~%1$s Tokens</string>
     <string name="context_compact_streaming">Kontext wird komprimiert…</string>
     <string name="context_compact_error">Komprimierungsfehler</string>
     <string name="context_compact_stopped">Komprimierung gestoppt</string>

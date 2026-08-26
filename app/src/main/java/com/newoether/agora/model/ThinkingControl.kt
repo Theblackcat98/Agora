@@ -5,6 +5,7 @@ object ThinkingLevels {
     const val DefaultBudgetTokens = 4096
 
     val effortValues = listOf("minimal", "low", "medium", "high", "xhigh", "max")
+    val ALL_LEVELS = effortValues
     val budgetPresets = listOf(1024, 2048, 4096, 8192, 16384, 32768)
 
     fun effortRangeForProvider(providerName: String?): IntRange = when (providerName?.lowercase()) {

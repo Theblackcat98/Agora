@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">Создать навык</string>
     <string name="tool_edit_skill">Изменить навык</string>
     <string name="tool_delete_skill">Удалить навык</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">Переопределено</string>
+    <string name="setting_origin_inherited_model">По умолчанию для модели</string>
+    <string name="setting_origin_inherited_provider">По умолчанию для провайдера</string>
+    <string name="setting_origin_inherited_global">Глобальные настройки</string>
+    <string name="conversation_parameters_title">Параметры и инструменты</string>
+    <string name="settings_tab_parameters">Параметры</string>
+    <string name="settings_tab_thinking">Размышление</string>
+    <string name="settings_tab_tools">Инструменты</string>
+    <string name="reset_all_overrides">Сбросить переопределения</string>
+    <string name="provider_defaults_title">Параметры провайдера по умолчанию</string>
+    <string name="provider_defaults_subtitle">Параметры генерации по умолчанию для моделей этого провайдера</string>
+    <string name="model_tune_parameters">Настроить параметры модели по умолчанию</string>
+    <string name="model_capabilities_title">Возможности</string>
+    <string name="supports_vision">Зрение</string>
+    <string name="supports_tools">Инструменты</string>
+    <string name="thinking_unsupported_hint">Размышление не поддерживается этой моделью.</string>
 </resources>

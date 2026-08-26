@@ -1210,4 +1210,22 @@
     <string name="tool_create_skill">Create skill</string>
     <string name="tool_edit_skill">Edit skill</string>
     <string name="tool_delete_skill">Delete skill</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">Overridden</string>
+    <string name="setting_origin_inherited_model">Model Default</string>
+    <string name="setting_origin_inherited_provider">Provider Default</string>
+    <string name="setting_origin_inherited_global">Global Default</string>
+    <string name="conversation_parameters_title">Parameters &amp; Tools</string>
+    <string name="settings_tab_parameters">Parameters</string>
+    <string name="settings_tab_thinking">Thinking</string>
+    <string name="settings_tab_tools">Tools</string>
+    <string name="reset_all_overrides">Reset Overrides</string>
+    <string name="provider_defaults_title">Provider Defaults</string>
+    <string name="provider_defaults_subtitle">Default generation parameters for models under this provider</string>
+    <string name="model_tune_parameters">Configure model defaults</string>
+    <string name="model_capabilities_title">Capabilities</string>
+    <string name="supports_vision">Vision</string>
+    <string name="supports_tools">Tools</string>
+    <string name="thinking_unsupported_hint">Thinking is not supported by this model.</string>
 </resources>

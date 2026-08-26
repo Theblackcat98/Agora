@@ -24,6 +24,7 @@ import com.newoether.agora.data.SystemPromptEntry
 import com.newoether.agora.model.ModelId
 import com.newoether.agora.model.OpenAiServiceTiers
 import com.newoether.agora.model.ToolCallDisplayModes
+import com.newoether.agora.model.settings.ModelSettingsPatch
 import com.newoether.agora.util.Constants
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -146,6 +147,10 @@ class SettingsRepository(
     val openAiResponsesApiEnabled: StateFlow<Boolean> =
         hot(settingsManager.openAiResponsesApiEnabled, false)
     val providerBaseUrls: StateFlow<Map<String, String>> = hot(settingsManager.providerBaseUrls, emptyMap())
+    val providerSettings: StateFlow<Map<String, ModelSettingsPatch>> =
+        hot(settingsManager.providerSettings, emptyMap())
+    val modelSettings: StateFlow<Map<String, ModelSettingsPatch>> =
+        hot(settingsManager.modelSettings, emptyMap())
     val customEndpointResolutions: StateFlow<Map<String, CustomEndpointResolution>> =
         hot(settingsManager.customEndpointResolutions, emptyMap())
     val titleGenerationEnabled: StateFlow<Boolean> = hot(settingsManager.titleGenerationEnabled, true)
@@ -455,11 +460,38 @@ class SettingsRepository(
                 enabledModels.value.filter { !it.startsWith("$providerId:") }.toSet(),
             )
             settingsManager.removeModelAliasesForProvider(providerId)
+            settingsManager.resetProviderSettingsPatch(providerId)
+            settingsManager.resetProviderSettingsPatch(name)
+            modelSettings.value.keys
+                .filter { it.startsWith("$providerId:") || it.startsWith("$name:") }
+                .forEach { settingsManager.resetModelSettingsPatch(it) }
             settingsManager.saveProviderBaseUrl(name, "")
             settingsManager.saveApiKeys(apiKeys.value.filter { it.provider != name })
             settingsManager.setActiveApiKeyId(name, null)
         }
     }
+
+    fun updateProviderSettingsPatch(providerId: String, patch: ModelSettingsPatch) {
+        scope.launch { settingsManager.saveProviderSettingsPatch(providerId, patch) }
+    }
+
+    fun resetProviderSettingsPatch(providerId: String) {
+        scope.launch { settingsManager.resetProviderSettingsPatch(providerId) }
+    }
+
+    fun updateModelSettingsPatch(modelKey: String, patch: ModelSettingsPatch) {
+        scope.launch { settingsManager.saveModelSettingsPatch(modelKey, patch) }
+    }
+
+    fun resetModelSettingsPatch(modelKey: String) {
+        scope.launch { settingsManager.resetModelSettingsPatch(modelKey) }
+    }
+
+    suspend fun getProviderSettings(): Map<String, ModelSettingsPatch> =
+        settingsManager.providerSettings.first()
+
+    suspend fun getModelSettings(): Map<String, ModelSettingsPatch> =
+        settingsManager.modelSettings.first()
 
     // Image transcription
     fun addImageTranscriptionModels(models: Set<String>) = scope.launch { settingsManager.saveImageTranscriptionEnabledModels(imageTranscriptionEnabledModels.value + models) }

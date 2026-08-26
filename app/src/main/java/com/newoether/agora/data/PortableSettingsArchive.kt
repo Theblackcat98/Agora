@@ -2,6 +2,7 @@ package com.newoether.agora.data
 
 import com.newoether.agora.model.OpenAiServiceTiers
 import com.newoether.agora.model.ThinkingLevels
+import com.newoether.agora.model.settings.ModelSettingsPatch
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -63,6 +64,8 @@ internal object PortableSettingsArchive {
         put("openAiServiceTierEnabled", JsonPrimitive(sm.openAiServiceTierEnabled.first()))
         put("openAiServiceTier", JsonPrimitive(sm.openAiServiceTier.first()))
         put("openAiResponsesApiEnabled", JsonPrimitive(sm.openAiResponsesApiEnabled.first()))
+        putEncoded("providerSettings", sm.providerSettings.first())
+        putEncoded("modelSettings", sm.modelSettings.first())
         putEncoded("providerBaseUrls", sm.providerBaseUrls.first())
         put("titleGenerationEnabled", JsonPrimitive(sm.titleGenerationEnabled.first()))
         putNullableString("titleGenerationModel", sm.titleGenerationModel.first())
@@ -250,6 +253,22 @@ internal object PortableSettingsArchive {
         }
         obj.boolean("openAiResponsesApiEnabled")?.let {
             sm.saveOpenAiResponsesApiEnabled(it)
+        }
+
+        obj.decode<Map<String, ModelSettingsPatch>>("providerSettings")?.let { imported ->
+            val remapped = imported.entries.associate { (provider, patch) ->
+                (importedProviderIdentities.providerNameRemap[provider] ?: provider) to patch
+            }
+            val value = if (replace) remapped else sm.providerSettings.first() + remapped
+            value.forEach { (provider, patch) -> sm.saveProviderSettingsPatch(provider, patch) }
+        }
+
+        obj.decode<Map<String, ModelSettingsPatch>>("modelSettings")?.let { imported ->
+            val remapped = imported.entries.associate { (modelKey, patch) ->
+                remapModel(modelKey) to patch
+            }
+            val value = if (replace) remapped else sm.modelSettings.first() + remapped
+            value.forEach { (modelKey, patch) -> sm.saveModelSettingsPatch(modelKey, patch) }
         }
 
         obj.decode<Map<String, String>>("providerBaseUrls")?.let { imported ->

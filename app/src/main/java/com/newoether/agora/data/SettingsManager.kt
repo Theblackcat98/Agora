@@ -6,6 +6,7 @@ import com.newoether.agora.model.ThinkingLevels
 import com.newoether.agora.model.ContextBudget
 import com.newoether.agora.model.ThinkingSegmentDisplayModes
 import com.newoether.agora.model.ToolCallDisplayModes
+import com.newoether.agora.model.settings.ModelSettingsPatch
 import com.newoether.agora.util.DebugLog
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -44,6 +45,8 @@ class SettingsManager(private val context: Context) {
     val modelAliases: Flow<Map<String, String>> = modelPreferenceStore.modelAliases
     val apiKeys: Flow<List<ApiKeyEntry>> = modelPreferenceStore.apiKeys
     val activeApiKeyIds: Flow<Map<String, String>> = modelPreferenceStore.activeApiKeyIds
+    val providerSettings: Flow<Map<String, ModelSettingsPatch>> = modelPreferenceStore.providerSettings
+    val modelSettings: Flow<Map<String, ModelSettingsPatch>> = modelPreferenceStore.modelSettings
 
     val systemPrompts: Flow<List<SystemPromptEntry>> = context.dataStore.data.map { pref ->
         val jsonStr = pref[SYSTEM_PROMPTS_JSON] ?: "[]"
@@ -287,6 +290,18 @@ class SettingsManager(private val context: Context) {
 
     suspend fun renameApiKeyProvider(oldProvider: String, newProvider: String) =
         modelPreferenceStore.renameApiKeyProvider(oldProvider, newProvider)
+
+    suspend fun saveProviderSettingsPatch(providerId: String, patch: ModelSettingsPatch?) =
+        modelPreferenceStore.saveProviderSettingsPatch(providerId, patch)
+
+    suspend fun resetProviderSettingsPatch(providerId: String) =
+        modelPreferenceStore.resetProviderSettingsPatch(providerId)
+
+    suspend fun saveModelSettingsPatch(modelKey: String, patch: ModelSettingsPatch?) =
+        modelPreferenceStore.saveModelSettingsPatch(modelKey, patch)
+
+    suspend fun resetModelSettingsPatch(modelKey: String) =
+        modelPreferenceStore.resetModelSettingsPatch(modelKey)
 
     suspend fun saveSystemPrompts(prompts: List<SystemPromptEntry>) {
         context.dataStore.edit { it[SYSTEM_PROMPTS_JSON] = json.encodeToString(prompts) }
@@ -859,6 +874,8 @@ class SettingsManager(private val context: Context) {
             prefs.remove(DEFAULT_TOP_P)
             prefs.remove(DEFAULT_FREQUENCY_PENALTY)
             prefs.remove(DEFAULT_PRESENCE_PENALTY)
+            prefs.remove(PROVIDER_SETTINGS_JSON)
+            prefs.remove(MODEL_SETTINGS_JSON)
 
             // Derived fetch state is never restored. Invalidate it when portable provider/model
             // configuration is replaced so stale results cannot masquerade as imported data.

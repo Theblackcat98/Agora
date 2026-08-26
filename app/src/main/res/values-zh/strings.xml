@@ -1308,4 +1308,20 @@
     <string name="tool_create_skill">创建技能</string>
     <string name="tool_edit_skill">编辑技能</string>
     <string name="tool_delete_skill">删除技能</string>
+    <string name="conversation_parameters_title">参数与工具</string>
+    <string name="model_capabilities_title">功能</string>
+    <string name="model_tune_parameters">配置模型默认值</string>
+    <string name="provider_defaults_subtitle">此提供商下模型的默认生成参数</string>
+    <string name="provider_defaults_title">提供商默认值</string>
+    <string name="reset_all_overrides">重置覆盖</string>
+    <string name="setting_origin_inherited_global">全局默认值</string>
+    <string name="setting_origin_inherited_model">模型默认值</string>
+    <string name="setting_origin_inherited_provider">提供商默认值</string>
+    <string name="setting_origin_overridden">已覆盖</string>
+    <string name="settings_tab_parameters">参数</string>
+    <string name="settings_tab_thinking">思考</string>
+    <string name="settings_tab_tools">工具</string>
+    <string name="supports_tools">工具</string>
+    <string name="supports_vision">视觉</string>
+    <string name="thinking_unsupported_hint">此模型不支持思考功能。</string>
 </resources>

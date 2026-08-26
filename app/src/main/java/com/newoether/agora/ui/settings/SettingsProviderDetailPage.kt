@@ -492,8 +492,16 @@ fun SettingsProviderDetailPage(
                         }
                     )
                 }
+
+                if (!isLocal) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SettingsProviderDefaultsSection(
+                        providerName = currentName,
+                        viewModel = viewModel,
+                    )
+                }
             }
-            }
+        }
     }
 
     // --- Dialogs ---

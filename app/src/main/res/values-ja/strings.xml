@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">スキルを作成</string>
     <string name="tool_edit_skill">スキルを編集</string>
     <string name="tool_delete_skill">スキルを削除</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">上書き</string>
+    <string name="setting_origin_inherited_model">モデル既定値</string>
+    <string name="setting_origin_inherited_provider">プロバイダー既定値</string>
+    <string name="setting_origin_inherited_global">グローバル既定値</string>
+    <string name="conversation_parameters_title">パラメータとツール</string>
+    <string name="settings_tab_parameters">パラメータ</string>
+    <string name="settings_tab_thinking">思考</string>
+    <string name="settings_tab_tools">ツール</string>
+    <string name="reset_all_overrides">上書きをリセット</string>
+    <string name="provider_defaults_title">プロバイダーの既定値</string>
+    <string name="provider_defaults_subtitle">このプロバイダー配下のモデルの既定の生成パラメータ</string>
+    <string name="model_tune_parameters">モデルの既定値を設定</string>
+    <string name="model_capabilities_title">機能</string>
+    <string name="supports_vision">ビジョン</string>
+    <string name="supports_tools">ツール</string>
+    <string name="thinking_unsupported_hint">このモデルは思考をサポートしていません。</string>
 </resources>

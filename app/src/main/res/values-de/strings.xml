@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">Skill erstellen</string>
     <string name="tool_edit_skill">Skill bearbeiten</string>
     <string name="tool_delete_skill">Skill löschen</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">Überschrieben</string>
+    <string name="setting_origin_inherited_model">Modell-Standard</string>
+    <string name="setting_origin_inherited_provider">Anbieter-Standard</string>
+    <string name="setting_origin_inherited_global">Globaler Standard</string>
+    <string name="conversation_parameters_title">Parameter &amp; Werkzeuge</string>
+    <string name="settings_tab_parameters">Parameter</string>
+    <string name="settings_tab_thinking">Nachdenken</string>
+    <string name="settings_tab_tools">Werkzeuge</string>
+    <string name="reset_all_overrides">Überschreibungen zurücksetzen</string>
+    <string name="provider_defaults_title">Anbieter-Standards</string>
+    <string name="provider_defaults_subtitle">Standard-Generierungsparameter für Modelle dieses Anbieters</string>
+    <string name="model_tune_parameters">Modellstandards konfigurieren</string>
+    <string name="model_capabilities_title">Fähigkeiten</string>
+    <string name="supports_vision">Vision</string>
+    <string name="supports_tools">Tools</string>
+    <string name="thinking_unsupported_hint">Nachdenken wird von diesem Modell nicht unterstützt.</string>
 </resources>

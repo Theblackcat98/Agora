@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -62,6 +63,7 @@ internal fun LazyListScope.modelProviderGroups(
     modelBlockHeights: MutableMap<String, Float>,
     onAliasClick: ((String) -> Unit)?,
     onDetailsClick: ((String) -> Unit)?,
+    onTuneClick: ((String) -> Unit)? = null,
     onEnabledChange: (String, Boolean) -> Unit,
 ) {
     groups.forEachIndexed { providerIndex, group ->
@@ -199,6 +201,21 @@ internal fun LazyListScope.modelProviderGroups(
                                     },
                                     trailingContent = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (onTuneClick != null) {
+                                                IconButton(
+                                                    onClick = { onTuneClick(model) },
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Tune,
+                                                        contentDescription =
+                                                            stringResource(
+                                                                R.string.model_tune_parameters
+                                                            ),
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(20.dp),
+                                                    )
+                                                }
+                                            }
                                             if (onDetailsClick != null) {
                                                 IconButton(
                                                     onClick = { onDetailsClick(model) },

@@ -1100,7 +1100,7 @@
     <string name="thinking_segments_title">Сегменты рассуждений</string>
     <string name="context_usage_messages">~%1$s / %2$s токенов</string>
     <string name="context_usage_header">~%1$s / %2$s токенов</string>
-    <string name="context_usage_header_unbounded">~%1$s / %2$s токенов</string>
+    <string name="context_usage_header_unbounded">~%1$s токенов</string>
     <string name="context_compact_streaming">Сжатие контекста…</string>
     <string name="context_compact_error">Ошибка сжатия</string>
     <string name="context_compact_stopped">Сжатие остановлено</string>

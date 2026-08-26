@@ -118,16 +118,21 @@ internal class ConversationContextProjector(
             val fixedTokenCost = snapshot?.let {
                 generationManager().fixedContextTokenCost(it.config, it.context)
             } ?: 0
+            val effectiveBudget = if (inputs.tokenBudget > 0) {
+                inputs.tokenBudget
+            } else {
+                snapshot?.config?.maxContextWindow ?: com.newoether.agora.model.ContextBudget.DEFAULT_TOKENS
+            }
             ConversationContextProjection(
-                inputs = inputs,
+                inputs = inputs.copy(tokenBudget = effectiveBudget),
                 usage = contextWindowUsage(
                     messages = contextMessages,
-                    tokenBudget = inputs.tokenBudget,
+                    tokenBudget = effectiveBudget,
                     fixedTokenCost = fixedTokenCost,
                 ),
                 retainedMessageIds = contextWindowRetainedMessageIds(
                     messages = contextMessages,
-                    tokenBudget = inputs.tokenBudget,
+                    tokenBudget = effectiveBudget,
                     fixedTokenCost = fixedTokenCost,
                 ),
                 completed = true,

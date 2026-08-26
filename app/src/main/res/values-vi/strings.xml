@@ -1214,4 +1214,20 @@
     <string name="tool_create_skill">Tạo kỹ năng</string>
     <string name="tool_edit_skill">Sửa kỹ năng</string>
     <string name="tool_delete_skill">Xóa kỹ năng</string>
+    <string name="conversation_parameters_title">Tham số &amp; Công cụ</string>
+    <string name="model_capabilities_title">Khả năng</string>
+    <string name="model_tune_parameters">Cấu hình mặc định mô hình</string>
+    <string name="provider_defaults_subtitle">Tham số tạo văn bản mặc định cho các mô hình thuộc nhà cung cấp này</string>
+    <string name="provider_defaults_title">Mặc định nhà cung cấp</string>
+    <string name="reset_all_overrides">Đặt lại ghi đè</string>
+    <string name="setting_origin_inherited_global">Mặc định toàn cục</string>
+    <string name="setting_origin_inherited_model">Mặc định mô hình</string>
+    <string name="setting_origin_inherited_provider">Mặc định nhà cung cấp</string>
+    <string name="setting_origin_overridden">Đã ghi đè</string>
+    <string name="settings_tab_parameters">Tham số</string>
+    <string name="settings_tab_thinking">Suy nghĩ</string>
+    <string name="settings_tab_tools">Công cụ</string>
+    <string name="supports_tools">Công cụ</string>
+    <string name="supports_vision">Thị giác</string>
+    <string name="thinking_unsupported_hint">Mô hình này không hỗ trợ tính năng suy nghĩ.</string>
 </resources>

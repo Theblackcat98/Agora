@@ -1,64 +1,107 @@
 package com.newoether.agora.ui.chat.bottombar
 
-import com.newoether.agora.ui.components.DialogWindowEdgeToEdge
-
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.content.MediaType
 import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.TransferableContent
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
-import androidx.compose.foundation.background
-import com.newoether.agora.model.apiModelName
-import com.newoether.agora.model.ContextBudget
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.material3.Icon
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.input.*
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material.icons.Icons
-
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.Image
-
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Compress
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.scale
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.newoether.agora.R
-import com.newoether.agora.viewmodel.QueuedSend
+import com.newoether.agora.api.util.ContextUsage
+import com.newoether.agora.data.CustomProviderConfig
+import com.newoether.agora.data.modelDisplayName
+import com.newoether.agora.data.providerDisplayName
+import com.newoether.agora.model.ContextBudget
+import com.newoether.agora.model.apiModelName
+import com.newoether.agora.model.profile.ModelCapabilities
+import com.newoether.agora.model.profile.ModelProfileRegistry
 import com.newoether.agora.ui.chat.PdfPageSelectDialog
 import com.newoether.agora.ui.chat.VideoSliceDialog
 import com.newoether.agora.ui.common.LocalAgoraHaptics
@@ -66,29 +109,19 @@ import com.newoether.agora.ui.common.OpenAiServiceTierControlPanel
 import com.newoether.agora.ui.common.ThinkingControlPanel
 import com.newoether.agora.ui.common.openAiServiceTierShortLabel
 import com.newoether.agora.ui.common.thinkingControlShortLabel
+import com.newoether.agora.ui.components.DialogWindowEdgeToEdge
 import com.newoether.agora.ui.motion.LocalAgoraMotionPolicy
 import com.newoether.agora.ui.motion.MotionAwareCircularProgressIndicator as CircularProgressIndicator
 import com.newoether.agora.ui.motion.MotionAwareModalBottomSheet as ModalBottomSheet
 import com.newoether.agora.ui.theme.ChatType
 import com.newoether.agora.util.noOpBringIntoView
+import com.newoether.agora.viewmodel.QueuedSend
 import com.newoether.agora.viewmodel.SendAcceptance
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
-import com.newoether.agora.data.CustomProviderConfig
-import com.newoether.agora.data.providerDisplayName
-import com.newoether.agora.data.modelDisplayName
 
 internal val CHAT_BOTTOM_BAR_OUTER_RADIUS = 28.dp
 internal val CHAT_BOTTOM_BAR_OUTER_SHAPE = RoundedCornerShape(CHAT_BOTTOM_BAR_OUTER_RADIUS)
 internal val CHAT_DROPDOWN_MENU_SHAPE = RoundedCornerShape(16.dp)
-
-import com.newoether.agora.api.util.ContextUsage
 
 internal fun contextUsageExceedsCompactThreshold(
     contextUsage: ContextUsage,
@@ -99,23 +132,10 @@ internal fun contextUsageExceedsCompactThreshold(
     estimatedTokens: Int,
     tokenBudget: Int,
     thresholdPercent: Int,
-): Boolean = ContextUsage(
-    estimatedTokenCount = estimatedTokens,
-    tokenBudget = tokenBudget,
-    logicalMessageCount = 0,
-    hasCompactBoundary = false,
-).exceedsCompactThreshold(thresholdPercent)
+): Boolean = ContextUsage(estimatedTokens, tokenBudget).exceedsCompactThreshold(thresholdPercent)
 
 internal fun contextUsageAtCapacity(contextUsage: ContextUsage): Boolean =
     contextUsage.isAtCapacity()
-
-internal fun contextUsageAtCapacity(estimatedTokens: Int, tokenBudget: Int): Boolean =
-    ContextUsage(
-        estimatedTokenCount = estimatedTokens,
-        tokenBudget = tokenBudget,
-        logicalMessageCount = 0,
-        hasCompactBoundary = false,
-    ).isAtCapacity()
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -137,6 +157,7 @@ fun ChatBottomBar(
     googleSearchEnabled: Boolean = false,
     openAiWebSearchAvailable: Boolean = false,
     openAiWebSearchEnabled: Boolean = false,
+    capabilities: ModelCapabilities = remember(selectedModel) { ModelProfileRegistry.resolve(selectedModel).capabilities },
     thinkingEnabled: Boolean = true,
     thinkingLevel: String = "medium",
     thinkingBudgetEnabled: Boolean = false,
@@ -604,219 +625,54 @@ fun ChatBottomBar(
                     }
                 }
 
-                ExposedDropdownMenuBox(
+                ChatComposerToolsMenu(
                     expanded = activeMenu == "tools",
-                    onExpandedChange = { }
-                ) {
-                    IconButton(
-                        onClick = { 
-                            val now = System.currentTimeMillis()
-                            if (activeMenu == "tools") {
-                                activeMenu = null
-                            } else if (now - lastToolsDismissTime > 200) {
-                                activeMenu = "tools"
-                            }
-                        }, 
-                        modifier = Modifier.size(32.dp).menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
-                    ) {
-                        Icon(Icons.Default.MoreVert, stringResource(R.string.tools), modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    
-                    ExposedDropdownMenu(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        expanded = activeMenu == "tools",
-                        onDismissRequest = {
-                            if (activeMenu == "tools") {
-                                activeMenu = null
-                                lastToolsDismissTime = System.currentTimeMillis()
-                            }
-                        },
-                        matchTextFieldWidth = false,
-                        shape = CHAT_DROPDOWN_MENU_SHAPE,
-                    ) {
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(androidx.compose.ui.res.painterResource(id = com.newoether.agora.R.drawable.neurology_24), null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(stringResource(R.string.thinking))
-                                        Text(
-                                            text = thinkingControlShortLabel(
-                                                thinkingEnabled,
-                                                thinkingLevel,
-                                                thinkingBudgetEnabled,
-                                                thinkingBudgetTokens
-                                            ),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            },
-                            trailingIcon = {
-                                Switch(
-                                    checked = thinkingEnabled,
-                                    onCheckedChange = { onThinkingToggle(it) },
-                                    modifier = Modifier.scale(0.7f)
-                                )
-                            },
-                            onClick = {
-                                activeMenu = null
-                                showThinkingSheet = true
-                            }
-                        )
-                        val isGemini = selectedProvider.equals("google", ignoreCase = true) && isModelValid
-                        if (isGemini) {
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Terminal, null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(stringResource(R.string.code_execution))
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        ProviderBadge("Gemini")
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = codeExecutionEnabled,
-                                        onCheckedChange = { onCodeExecutionToggle(it) },
-                                        modifier = Modifier.scale(0.7f)
-                                    )
-                                },
-                                onClick = { onCodeExecutionToggle(!codeExecutionEnabled) }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Image(
-                                            painter = androidx.compose.ui.res.painterResource(R.drawable.provider_google),
-                                            contentDescription = null,
-                                            colorFilter = ColorFilter.tint(Color.White),
-                                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp),
-                                        )
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(stringResource(R.string.google_search))
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        ProviderBadge("Gemini")
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = googleSearchEnabled,
-                                        onCheckedChange = { onGoogleSearchToggle(it) },
-                                        modifier = Modifier.scale(0.7f)
-                                    )
-                                },
-                                onClick = { onGoogleSearchToggle(!googleSearchEnabled) }
-                            )
+                    onExpandedChange = { expanded ->
+                        val now = System.currentTimeMillis()
+                        if (!expanded) {
+                            activeMenu = null
+                            lastToolsDismissTime = now
+                        } else if (now - lastToolsDismissTime > 200) {
+                            activeMenu = "tools"
                         }
-                        if (openAiServiceTierAvailable && isModelValid) {
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.Speed,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp),
-                                        )
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Column {
-                                            Text(stringResource(R.string.openai_service_tier_title))
-                                            Text(
-                                                text = openAiServiceTierShortLabel(
-                                                    openAiServiceTierEnabled,
-                                                    openAiServiceTier,
-                                                ),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            )
-                                        }
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = openAiServiceTierEnabled,
-                                        onCheckedChange = onOpenAiServiceTierToggle,
-                                        modifier = Modifier.scale(0.7f),
-                                    )
-                                },
-                                onClick = {
-                                    activeMenu = null
-                                    showOpenAiServiceTierSheet = true
-                                },
-                            )
+                    },
+                    onDismissRequest = {
+                        if (activeMenu == "tools") {
+                            activeMenu = null
+                            lastToolsDismissTime = System.currentTimeMillis()
                         }
-                        if (openAiWebSearchAvailable && isModelValid) {
-                            NativeSearchMenuItem(
-                                checked = openAiWebSearchEnabled,
-                                provider = "OpenAI",
-                                onCheckedChange = onOpenAiWebSearchToggle,
-                            )
-                        }
-                        if (showWebSearch) {
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Language, null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(stringResource(R.string.web_search))
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = webSearchEnabled,
-                                        onCheckedChange = { onWebSearchToggle(it) },
-                                        modifier = Modifier.scale(0.7f)
-                                    )
-                                },
-                                onClick = { onWebSearchToggle(!webSearchEnabled) }
-                            )
-                        }
-                        if (showShell) {
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Terminal, null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text(stringResource(R.string.shell_title))
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = shellEnabled,
-                                        onCheckedChange = { onShellToggle(it) },
-                                        modifier = Modifier.scale(0.7f)
-                                    )
-                                },
-                                onClick = { onShellToggle(!shellEnabled) }
-                            )
-                        }
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Compress, null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.context_compact))
-                                }
-                            },
-                            enabled = canCompact && !isCompacting,
-                            onClick = { activeMenu = null; onCompactClick() },
-                        )
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Tune, null, modifier = Modifier.size(CHAT_DROPDOWN_MENU_ICON_SIZE_DP.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(stringResource(R.string.advanced_settings))
-                                }
-                            },
-                            // Unlike the toggle rows, this opens a dialog — collapse the menu first.
-                            onClick = { activeMenu = null; onAdvancedClick() }
-                        )
-                    }
-                }
+                    },
+                    isModelValid = isModelValid,
+                    capabilities = capabilities,
+                    thinkingEnabled = thinkingEnabled,
+                    thinkingLevel = thinkingLevel,
+                    thinkingBudgetEnabled = thinkingBudgetEnabled,
+                    thinkingBudgetTokens = thinkingBudgetTokens,
+                    onThinkingToggle = onThinkingToggle,
+                    onOpenThinkingSheet = { showThinkingSheet = true },
+                    codeExecutionEnabled = codeExecutionEnabled,
+                    onCodeExecutionToggle = onCodeExecutionToggle,
+                    googleSearchEnabled = googleSearchEnabled,
+                    onGoogleSearchToggle = onGoogleSearchToggle,
+                    openAiWebSearchAvailable = openAiWebSearchAvailable,
+                    openAiWebSearchEnabled = openAiWebSearchEnabled,
+                    onOpenAiWebSearchToggle = onOpenAiWebSearchToggle,
+                    openAiServiceTierAvailable = openAiServiceTierAvailable,
+                    openAiServiceTierEnabled = openAiServiceTierEnabled,
+                    openAiServiceTier = openAiServiceTier,
+                    onOpenAiServiceTierToggle = onOpenAiServiceTierToggle,
+                    onOpenOpenAiServiceTierSheet = { showOpenAiServiceTierSheet = true },
+                    showWebSearch = showWebSearch,
+                    webSearchEnabled = webSearchEnabled,
+                    onWebSearchToggle = onWebSearchToggle,
+                    showShell = showShell,
+                    shellEnabled = shellEnabled,
+                    onShellToggle = onShellToggle,
+                    canCompact = canCompact,
+                    isCompacting = isCompacting,
+                    onCompactClick = onCompactClick,
+                    onAdvancedClick = onAdvancedClick,
+                )
             }
             ComposerSendButton(
                 textFieldState = textFieldState,
@@ -838,7 +694,28 @@ fun ChatBottomBar(
             modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp, top = 4.dp)
         ) {
             val elevatedSurface = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-            IconButton(onClick = { if (!isExpandAnimating) onCollapse() }, modifier = Modifier.size(40.dp).background(Brush.radialGradient(listOf(elevatedSurface, elevatedSurface.copy(alpha = 0.5f), Color.Transparent)), CircleShape)) { Icon(painter = androidx.compose.ui.res.painterResource(id = R.drawable.collapse_all_24px), contentDescription = stringResource(R.string.collapse), modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)) }
+            IconButton(
+                onClick = { if (!isExpandAnimating) onCollapse() },
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        Brush.radialGradient(
+                            listOf<Color>(
+                                elevatedSurface,
+                                elevatedSurface.copy(alpha = 0.5f),
+                                Color.Transparent,
+                            ),
+                        ),
+                        CircleShape,
+                    ),
+            ) {
+                Icon(
+                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.collapse_all_24px),
+                    contentDescription = stringResource(R.string.collapse),
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                )
+            }
         }
     }
 

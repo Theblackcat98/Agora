@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">스킬 만들기</string>
     <string name="tool_edit_skill">스킬 편집</string>
     <string name="tool_delete_skill">스킬 삭제</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">재정의됨</string>
+    <string name="setting_origin_inherited_model">모델 기본값</string>
+    <string name="setting_origin_inherited_provider">제공업체 기본값</string>
+    <string name="setting_origin_inherited_global">전역 기본값</string>
+    <string name="conversation_parameters_title">매개변수 및 도구</string>
+    <string name="settings_tab_parameters">매개변수</string>
+    <string name="settings_tab_thinking">사고</string>
+    <string name="settings_tab_tools">도구</string>
+    <string name="reset_all_overrides">재정의 초기화</string>
+    <string name="provider_defaults_title">제공업체 기본값</string>
+    <string name="provider_defaults_subtitle">이 제공업체의 모델에 대한 기본 생성 매개변수</string>
+    <string name="model_tune_parameters">모델 기본값 구성</string>
+    <string name="model_capabilities_title">기능</string>
+    <string name="supports_vision">비전</string>
+    <string name="supports_tools">도구</string>
+    <string name="thinking_unsupported_hint">이 모델은 사고 기능을 지원하지 않습니다.</string>
 </resources>

@@ -150,6 +150,7 @@ fun SettingsModelsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
     var customModelRawAlias by rememberSaveable { mutableStateOf("") }
     var customModelProviderMenuExpanded by remember { mutableStateOf(false) }
     var modelSearchQuery by rememberSaveable { mutableStateOf("") }
+    var configuringModelId by remember { mutableStateOf<String?>(null) }
     val expandedProviders = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
     val modelBlockHeights = remember { mutableStateMapOf<String, Float>() }
 
@@ -334,6 +335,7 @@ fun SettingsModelsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                         )
                         showCustomModelDialog = true
                     },
+                    onTuneClick = { configuringModelId = it },
                     onEnabledChange = { model, enabled ->
                         viewModel.settings.setEnabledModels(
                             if (enabled) enabledModels + model else enabledModels - model
@@ -457,6 +459,7 @@ fun SettingsModelsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                     modelBlockHeights = modelBlockHeights,
                     onAliasClick = { showModelAliasDialog = it },
                     onDetailsClick = null,
+                    onTuneClick = { configuringModelId = it },
                     onEnabledChange = { model, enabled ->
                         viewModel.settings.setEnabledModels(
                             if (enabled) enabledModels + model else enabledModels - model
@@ -816,6 +819,14 @@ fun SettingsModelsPage(viewModel: ChatViewModel, onBack: () -> Unit) {
                 }) { Text(stringResource(R.string.provider_save)) }
             },
             dismissButton = { TextButton(onClick = { showModelAliasDialog = null }) { Text(stringResource(R.string.provider_cancel)) } }
+        )
+    }
+
+    configuringModelId?.let { modelId ->
+        ModelSettingsDialog(
+            modelId = modelId,
+            viewModel = viewModel,
+            onDismiss = { configuringModelId = null },
         )
     }
 }

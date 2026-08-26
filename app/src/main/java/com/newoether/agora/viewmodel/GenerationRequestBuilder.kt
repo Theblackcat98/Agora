@@ -126,6 +126,12 @@ class GenerationRequestBuilder(
                 shellEnabled = settings.shellEnabled.value,
             )
         },
+        providerDefaults = { providerName ->
+            settings.providerSettings.value[providerName]
+        },
+        modelDefaults = { modelKey ->
+            settings.modelSettings.value[modelKey]
+        },
         conversationOverrides = { convId ->
             val legacy = settings.conversationSettings.value[convId]
                 ?: pendingConversationSettings.value
@@ -341,9 +347,10 @@ class GenerationRequestBuilder(
             codeExecutionEnabled = effectiveSettings.codeExecutionEnabled,
             googleSearchEnabled = effectiveSettings.googleSearchEnabled,
             thinkingEnabled = effectiveSettings.thinkingEnabled,
-            thinkingLevel = effectiveSettings.thinkingLevel,
+            thinkingLevel = com.newoether.agora.model.ThinkingLevels.normalize(effectiveSettings.thinkingLevel),
             thinkingBudgetEnabled = effectiveSettings.thinkingBudgetEnabled,
-            thinkingBudgetTokens = effectiveSettings.thinkingBudgetTokens,
+            thinkingBudgetTokens = effectiveSettings.thinkingBudgetTokens
+                ?: com.newoether.agora.model.ThinkingLevels.DefaultBudgetTokens,
             openAiServiceTier = OpenAiServiceTiers.requestValue(
                 enabled = effectiveSettings.openAiServiceTierEnabled,
                 value = effectiveSettings.openAiServiceTier,
@@ -475,5 +482,16 @@ class GenerationRequestBuilder(
 
             ResolvedPrompt(null, null, null)
         }
+    }
+
+    companion object {
+        val COMPACTION_OVERLAY_PATCH = ModelSettingsPatch(
+            thinkingEnabled = false,
+            codeExecutionEnabled = false,
+            googleSearchEnabled = false,
+            openAiWebSearchEnabled = false,
+            webSearchEnabled = false,
+            shellEnabled = false,
+        )
     }
 }

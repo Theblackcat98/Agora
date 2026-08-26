@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">إنشاء مهارة</string>
     <string name="tool_edit_skill">تعديل المهارة</string>
     <string name="tool_delete_skill">حذف المهارة</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">مُخصّص</string>
+    <string name="setting_origin_inherited_model">افتراضي النموذج</string>
+    <string name="setting_origin_inherited_provider">افتراضي المزود</string>
+    <string name="setting_origin_inherited_global">الافتراضي العام</string>
+    <string name="conversation_parameters_title">المعلمات والأدوات</string>
+    <string name="settings_tab_parameters">المعلمات</string>
+    <string name="settings_tab_thinking">التفكير</string>
+    <string name="settings_tab_tools">الأدوات</string>
+    <string name="reset_all_overrides">إعادة تعيين التخصيصات</string>
+    <string name="provider_defaults_title">إعدادات المزود الافتراضية</string>
+    <string name="provider_defaults_subtitle">معلمات التوليد الافتراضية للنماذج التابعة لهذا المزود</string>
+    <string name="model_tune_parameters">ضبط إعدادات النموذج الافتراضية</string>
+    <string name="model_capabilities_title">الإمكانيات</string>
+    <string name="supports_vision">الرؤية</string>
+    <string name="supports_tools">الأدوات</string>
+    <string name="thinking_unsupported_hint">التفكير غير مدعوم في هذا النموذج.</string>
 </resources>

@@ -3,6 +3,7 @@ package com.newoether.agora.data
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.newoether.agora.model.settings.ModelSettingsPatch
 import com.newoether.agora.util.Constants
 import com.newoether.agora.util.DebugLog
 import kotlinx.coroutines.flow.Flow
@@ -78,6 +79,76 @@ internal class SettingsModelPreferenceStore(
             emptyList()
         }
     }
+
+    val providerSettings: Flow<Map<String, ModelSettingsPatch>> = dataStore.data.map { pref ->
+        val jsonStr = pref[PROVIDER_SETTINGS_JSON] ?: "{}"
+        try {
+            json.decodeFromString<Map<String, ModelSettingsPatch>>(jsonStr)
+                .filterValues { !it.isAllNull() }
+        } catch (e: Exception) {
+            DebugLog.e("SettingsManager", "Failed to decode providerSettings", e)
+            emptyMap()
+        }
+    }
+
+    val modelSettings: Flow<Map<String, ModelSettingsPatch>> = dataStore.data.map { pref ->
+        val jsonStr = pref[MODEL_SETTINGS_JSON] ?: "{}"
+        try {
+            json.decodeFromString<Map<String, ModelSettingsPatch>>(jsonStr)
+                .filterValues { !it.isAllNull() }
+        } catch (e: Exception) {
+            DebugLog.e("SettingsManager", "Failed to decode modelSettings", e)
+            emptyMap()
+        }
+    }
+
+    suspend fun saveProviderSettingsPatch(providerId: String, patch: ModelSettingsPatch?) {
+        dataStore.edit { prefs ->
+            val current = prefs[PROVIDER_SETTINGS_JSON] ?: "{}"
+            val map = try {
+                json.decodeFromString<MutableMap<String, ModelSettingsPatch>>(current)
+            } catch (_: Exception) {
+                mutableMapOf()
+            }
+            if (patch == null || patch.isAllNull()) {
+                map.remove(providerId)
+            } else {
+                map[providerId] = patch
+            }
+            if (map.isEmpty()) {
+                prefs.remove(PROVIDER_SETTINGS_JSON)
+            } else {
+                prefs[PROVIDER_SETTINGS_JSON] = json.encodeToString(map)
+            }
+        }
+    }
+
+    suspend fun resetProviderSettingsPatch(providerId: String) =
+        saveProviderSettingsPatch(providerId, null)
+
+    suspend fun saveModelSettingsPatch(modelKey: String, patch: ModelSettingsPatch?) {
+        dataStore.edit { prefs ->
+            val current = prefs[MODEL_SETTINGS_JSON] ?: "{}"
+            val map = try {
+                json.decodeFromString<MutableMap<String, ModelSettingsPatch>>(current)
+            } catch (_: Exception) {
+                mutableMapOf()
+            }
+            if (patch == null || patch.isAllNull()) {
+                map.remove(modelKey)
+            } else {
+                map[modelKey] = patch
+            }
+            if (map.isEmpty()) {
+                prefs.remove(MODEL_SETTINGS_JSON)
+            } else {
+                prefs[MODEL_SETTINGS_JSON] = json.encodeToString(map)
+            }
+        }
+    }
+
+    suspend fun resetModelSettingsPatch(modelKey: String) =
+        saveModelSettingsPatch(modelKey, null)
 
     val lastModelsFetchFingerprint: Flow<String> = dataStore.data.map { it[LAST_MODELS_FETCH_FINGERPRINT] ?: "" }
 
@@ -261,6 +332,24 @@ internal class SettingsModelPreferenceStore(
             replaceNullableReference(IMAGE_TRANSCRIPTION_MODEL)
             replaceNullableReference(IMAGE_GEN_MODEL)
             replaceNullableReference(CONTEXT_COMPACT_MODEL)
+
+            val currentModelSettings = prefs[MODEL_SETTINGS_JSON]
+            if (currentModelSettings != null) {
+                val modelMap = runCatching {
+                    json.decodeFromString<MutableMap<String, ModelSettingsPatch>>(currentModelSettings)
+                }.getOrNull()
+                if (modelMap != null && modelMap.containsKey(oldModelId)) {
+                    val patch = modelMap.remove(oldModelId)
+                    if (newModelId != null && patch != null) {
+                        modelMap[newModelId] = patch
+                    }
+                    if (modelMap.isEmpty()) {
+                        prefs.remove(MODEL_SETTINGS_JSON)
+                    } else {
+                        prefs[MODEL_SETTINGS_JSON] = json.encodeToString(modelMap)
+                    }
+                }
+            }
         }
     }
 
@@ -486,6 +575,32 @@ internal class SettingsModelPreferenceStore(
             }
             if (repairedAliases != null) {
                 prefs[MODEL_ALIASES_JSON] = json.encodeToString(repairedAliases)
+            }
+            val providerSettingsRaw = prefs[PROVIDER_SETTINGS_JSON]
+            if (providerSettingsRaw != null) {
+                val providerMap = runCatching {
+                    json.decodeFromString<Map<String, ModelSettingsPatch>>(providerSettingsRaw)
+                }.getOrNull()
+                if (providerMap != null) {
+                    val remapped = providerMap.mapKeys { (k, _) -> migrationMap[k] ?: k }
+                    if (remapped != providerMap) {
+                        prefs[PROVIDER_SETTINGS_JSON] = json.encodeToString(remapped)
+                        modelReferencesChanged = true
+                    }
+                }
+            }
+            val modelSettingsRaw = prefs[MODEL_SETTINGS_JSON]
+            if (modelSettingsRaw != null) {
+                val modelMap = runCatching {
+                    json.decodeFromString<Map<String, ModelSettingsPatch>>(modelSettingsRaw)
+                }.getOrNull()
+                if (modelMap != null) {
+                    val remapped = modelMap.mapKeys { (k, _) -> remap(k) }
+                    if (remapped != modelMap) {
+                        prefs[MODEL_SETTINGS_JSON] = json.encodeToString(remapped)
+                        modelReferencesChanged = true
+                    }
+                }
             }
             if (
                 providersChanged || modelReferencesChanged ||

@@ -29,6 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.newoether.agora.R
 import com.newoether.agora.data.ConversationSettings
+import com.newoether.agora.model.ModelId
+import com.newoether.agora.model.profile.ModelProfileRegistry
+import com.newoether.agora.model.settings.ModelSettingsPatch
+import com.newoether.agora.ui.chat.settings.ConversationSettingsDialog
 import com.newoether.agora.ui.components.clearFocusOnTap
 import com.newoether.agora.viewmodel.ChatViewModel
 
@@ -255,43 +259,80 @@ internal fun ChatAdvancedSettingsDialog(
     onDismiss: () -> Unit
 ) {
     val currentConversationId by viewModel.currentConversationId.collectAsState()
+    val selectedModel by viewModel.settings.selectedModel.collectAsState()
     val conversationSettings by viewModel.settings.conversationSettings.collectAsState()
+    val providerSettings by viewModel.settings.providerSettings.collectAsState()
+    val modelSettings by viewModel.settings.modelSettings.collectAsState()
     val maxContextWindow by viewModel.settings.maxContextWindow.collectAsState()
     val defaultTemperature by viewModel.settings.defaultTemperature.collectAsState()
     val defaultMaxTokens by viewModel.settings.defaultMaxTokens.collectAsState()
     val defaultTopP by viewModel.settings.defaultTopP.collectAsState()
     val defaultFrequencyPenalty by viewModel.settings.defaultFrequencyPenalty.collectAsState()
     val defaultPresencePenalty by viewModel.settings.defaultPresencePenalty.collectAsState()
+    val codeExecutionEnabled by viewModel.settings.codeExecutionEnabled.collectAsState()
+    val googleSearchEnabled by viewModel.settings.googleSearchEnabled.collectAsState()
+    val thinkingEnabled by viewModel.settings.thinkingEnabled.collectAsState()
+    val thinkingLevel by viewModel.settings.thinkingLevel.collectAsState()
+    val thinkingBudgetEnabled by viewModel.settings.thinkingBudgetEnabled.collectAsState()
+    val thinkingBudgetTokens by viewModel.settings.thinkingBudgetTokens.collectAsState()
+    val webSearchEnabled by viewModel.settings.webSearchEnabled.collectAsState()
+    val shellEnabled by viewModel.settings.shellEnabled.collectAsState()
 
     val currentId = currentConversationId
-    val overrides = if (currentId != null) conversationSettings[currentId] ?: ConversationSettings()
-        else ConversationSettings()
-    val defaults = ConversationSettings(
+    val currentLegacy = if (currentId != null) conversationSettings[currentId] else null
+    val initialPatch = ModelSettingsPatch.fromLegacy(currentLegacy)
+
+    val parsedModel = remember(selectedModel) { ModelId.parse(selectedModel) }
+    val providerName = parsedModel.providerName
+    val canonicalModelKey = "${parsedModel.providerName}:${parsedModel.modelName}"
+
+    val providerPatch = providerSettings[providerName]
+    val modelPatch = modelSettings[canonicalModelKey] ?: modelSettings[selectedModel]
+    val profile = remember(selectedModel) { ModelProfileRegistry.resolve(selectedModel) }
+    val capabilities = profile.capabilities
+
+    val globalPatch = ModelSettingsPatch(
         contextWindow = maxContextWindow,
         temperature = defaultTemperature,
         maxTokens = defaultMaxTokens,
         topP = defaultTopP,
         frequencyPenalty = defaultFrequencyPenalty,
-        presencePenalty = defaultPresencePenalty
+        presencePenalty = defaultPresencePenalty,
+        codeExecutionEnabled = codeExecutionEnabled,
+        googleSearchEnabled = googleSearchEnabled,
+        openAiWebSearchEnabled = true,
+        thinkingEnabled = thinkingEnabled,
+        thinkingLevel = thinkingLevel,
+        thinkingBudgetEnabled = thinkingBudgetEnabled,
+        thinkingBudgetTokens = thinkingBudgetTokens,
+        openAiServiceTierEnabled = false,
+        openAiServiceTier = "auto",
+        webSearchEnabled = webSearchEnabled,
+        shellEnabled = shellEnabled,
     )
-    AdvancedSettingsDialog(
-        overrides = overrides,
-        globalDefaults = defaults,
-        onSave = { settings ->
+
+    ConversationSettingsDialog(
+        initialPatch = initialPatch,
+        modelPatch = modelPatch,
+        providerPatch = providerPatch,
+        globalPatch = globalPatch,
+        capabilities = capabilities,
+        onSave = { patch ->
+            val legacy = patch.toLegacy()
             if (currentId != null) {
-                viewModel.settings.setConversationSettings(currentId, settings)
+                viewModel.settings.setConversationSettings(currentId, if (patch.isAllNull()) null else legacy)
             } else {
-                viewModel.setPendingConversationSettings(settings)
+                viewModel.setPendingConversationSettings(if (patch.isAllNull()) null else legacy)
             }
             onDismiss()
         },
-        onResetToDefaults = {
+        onResetAll = {
             if (currentId != null) {
                 viewModel.settings.setConversationSettings(currentId, null)
             } else {
                 viewModel.setPendingConversationSettings(null)
             }
         },
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     )
 }

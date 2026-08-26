@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">Créer une compétence</string>
     <string name="tool_edit_skill">Modifier la compétence</string>
     <string name="tool_delete_skill">Supprimer la compétence</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">Remplacé</string>
+    <string name="setting_origin_inherited_model">Par défaut du modèle</string>
+    <string name="setting_origin_inherited_provider">Par défaut du fournisseur</string>
+    <string name="setting_origin_inherited_global">Par défaut global</string>
+    <string name="conversation_parameters_title">Paramètres &amp; Outils</string>
+    <string name="settings_tab_parameters">Paramètres</string>
+    <string name="settings_tab_thinking">Réflexion</string>
+    <string name="settings_tab_tools">Outils</string>
+    <string name="reset_all_overrides">Réinitialiser les remplacements</string>
+    <string name="provider_defaults_title">Valeurs par défaut du fournisseur</string>
+    <string name="provider_defaults_subtitle">Paramètres de génération par défaut pour les modèles de ce fournisseur</string>
+    <string name="model_tune_parameters">Configurer les valeurs par défaut du modèle</string>
+    <string name="model_capabilities_title">Capacités</string>
+    <string name="supports_vision">Vision</string>
+    <string name="supports_tools">Outils</string>
+    <string name="thinking_unsupported_hint">La réflexion n\'est pas prise en charge par ce modèle.</string>
 </resources>

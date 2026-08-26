@@ -1208,4 +1208,22 @@
     <string name="tool_create_skill">Crear habilidad</string>
     <string name="tool_edit_skill">Editar habilidad</string>
     <string name="tool_delete_skill">Eliminar habilidad</string>
+
+    <!-- Settings Overhaul & Model Profiles -->
+    <string name="setting_origin_overridden">Sobrescrito</string>
+    <string name="setting_origin_inherited_model">Predeterminado del modelo</string>
+    <string name="setting_origin_inherited_provider">Predeterminado del proveedor</string>
+    <string name="setting_origin_inherited_global">Predeterminado global</string>
+    <string name="conversation_parameters_title">Parámetros y herramientas</string>
+    <string name="settings_tab_parameters">Parámetros</string>
+    <string name="settings_tab_thinking">Pensamiento</string>
+    <string name="settings_tab_tools">Herramientas</string>
+    <string name="reset_all_overrides">Restablecer personalizaciones</string>
+    <string name="provider_defaults_title">Valores predeterminados del proveedor</string>
+    <string name="provider_defaults_subtitle">Parámetros de generación predeterminados para los modelos de este proveedor</string>
+    <string name="model_tune_parameters">Configurar valores predeterminados del modelo</string>
+    <string name="model_capabilities_title">Capacidades</string>
+    <string name="supports_vision">Visión</string>
+    <string name="supports_tools">Herramientas</string>
+    <string name="thinking_unsupported_hint">Este modelo no admite el modo de pensamiento.</string>
 </resources>

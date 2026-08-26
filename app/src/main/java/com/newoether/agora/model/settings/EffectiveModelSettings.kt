@@ -3,12 +3,10 @@ package com.newoether.agora.model.settings
 import com.newoether.agora.model.ModelId
 import com.newoether.agora.model.profile.ModelCapabilities
 import com.newoether.agora.model.profile.ModelProfile
-import kotlinx.serialization.Serializable
 
 /**
  * Authoritative, immutable, fully resolved runtime settings object for one model in one context.
  */
-@Serializable
 data class EffectiveModelSettings(
     val modelId: ModelId,
     val profile: ModelProfile,

@@ -151,29 +151,35 @@ fun ChatApp(
     val autoExpandActiveGroup by viewModel.settings.autoExpandActiveGroup.collectAsState()
 
     val parseInlineDollarMath by viewModel.settings.parseInlineDollarMath.collectAsState()
-    val conversationSettings by viewModel.settings.conversationSettings.collectAsState()
-    val pendingSettings by viewModel.pendingConversationSettings.collectAsState()
-    // Resolved per-conversation values: override → global default
-    val convId = currentConversationId
-    val convOverride = if (convId != null) conversationSettings[convId] else pendingSettings
-    val codeExecutionEnabled = convOverride?.codeExecutionEnabled ?: globalCodeExecution
-    val googleSearchEnabled = convOverride?.googleSearchEnabled ?: globalGoogleSearch
-    val thinkingEnabled = convOverride?.thinkingEnabled ?: globalThinkingEnabled
-    val thinkingLevel = convOverride?.thinkingLevel ?: globalThinkingLevel
-    val thinkingBudgetEnabled = convOverride?.thinkingBudgetEnabled ?: globalThinkingBudgetEnabled
-    val thinkingBudgetTokens = convOverride?.thinkingBudgetTokens ?: globalThinkingBudgetTokens
-    val selectedProviderName = viewModel.getProviderForModel(selectedModel)
-    val openAiServiceTierState = openAiConversationServiceTierState(
-        viewModel, convOverride, selectedProviderName, openAiResponsesApiEnabled, customProviders,
+    val effectiveSettings = rememberChatEffectiveSettings(
+        viewModel = viewModel,
+        currentConversationId = currentConversationId,
+        selectedModel = selectedModel,
+        customProviders = customProviders,
+        openAiResponsesApiEnabled = openAiResponsesApiEnabled,
+        globalCodeExecution = globalCodeExecution,
+        globalGoogleSearch = globalGoogleSearch,
+        globalThinkingEnabled = globalThinkingEnabled,
+        globalThinkingLevel = globalThinkingLevel,
+        globalThinkingBudgetEnabled = globalThinkingBudgetEnabled,
+        globalThinkingBudgetTokens = globalThinkingBudgetTokens,
+        globalWebSearch = globalWebSearch,
+        globalShell = globalShell,
+        maxContextWindow = maxContextWindow,
     )
-    val openAiWebSearchAvailable = resolveOpenAiNativeSearchAvailability(
-        selectedProviderName, openAiResponsesApiEnabled, customProviders,
-    )
-    val openAiWebSearchEnabled = convOverride?.openAiWebSearchEnabled ?: true
-    // Web Search and Shell: global switch OFF → always false, regardless of override
-    val webSearchEnabled = globalWebSearch && (convOverride?.webSearchEnabled ?: true)
-    val shellEnabled = globalShell && (convOverride?.shellEnabled ?: true)
-    val contextWindow = ContextBudget.normalize(convOverride?.contextWindow ?: maxContextWindow)
+    val codeExecutionEnabled = effectiveSettings.codeExecutionEnabled
+    val googleSearchEnabled = effectiveSettings.googleSearchEnabled
+    val thinkingEnabled = effectiveSettings.thinkingEnabled
+    val thinkingLevel = effectiveSettings.thinkingLevel
+    val thinkingBudgetEnabled = effectiveSettings.thinkingBudgetEnabled
+    val thinkingBudgetTokens = effectiveSettings.thinkingBudgetTokens
+    val selectedProviderName = effectiveSettings.selectedProviderName
+    val openAiServiceTierState = effectiveSettings.openAiServiceTierState
+    val openAiWebSearchAvailable = effectiveSettings.openAiWebSearchAvailable
+    val openAiWebSearchEnabled = effectiveSettings.openAiWebSearchEnabled
+    val webSearchEnabled = effectiveSettings.webSearchEnabled
+    val shellEnabled = effectiveSettings.shellEnabled
+    val contextWindow = effectiveSettings.contextWindow
     val contextProjectionKey = rememberContextProjectionInvalidationKey(
         viewModel,
         listOf(codeExecutionEnabled, googleSearchEnabled, webSearchEnabled, shellEnabled, shellDevices, currentConversation?.systemPromptId),
@@ -950,7 +956,6 @@ fun ChatApp(
                         fullScreenViewerUrls = fullScreenViewerUrls,
                         compactDefaultModel = compactModel,
                         compactDefaultPrompt = compactPrompt,
-                        compactDefaultRetainCount = compactRetainCount,
                         contextUsage = contextUsage,
                         contextCompactThresholdPercent = compactThresholdPercent,
                         canCompact = currentConversationId != null && !isLoading && !isSwitching && !isStopping,
@@ -962,14 +967,14 @@ fun ChatApp(
                         onRemoveQueuedSend = viewModel::removeQueuedSend,
                         isStopping = isStopping,
                     )
-                            }
-                        }
-                    }
                 }
             }
-            }
         }
-        }
+    }
+}
+}
+}
+}
 
     ChatAppDialogHost(
         state = dialogState,

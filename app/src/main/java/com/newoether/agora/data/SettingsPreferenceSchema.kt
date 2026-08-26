@@ -122,6 +122,8 @@ internal val DEFAULT_TOP_P = stringPreferencesKey("default_top_p")
 internal val DEFAULT_FREQUENCY_PENALTY = stringPreferencesKey("default_frequency_penalty")
 internal val DEFAULT_PRESENCE_PENALTY = stringPreferencesKey("default_presence_penalty")
 internal val CONVERSATION_SETTINGS_JSON = stringPreferencesKey("conversation_settings_json")
+internal val PROVIDER_SETTINGS_JSON = stringPreferencesKey("provider_settings_json")
+internal val MODEL_SETTINGS_JSON = stringPreferencesKey("model_settings_json")
 // ── Auto Backup ───────────────────────────────────────────
 internal val AUTO_BACKUP_ENABLED = booleanPreferencesKey("auto_backup_enabled")
 internal val AUTO_BACKUP_PERIOD_HOURS = intPreferencesKey("auto_backup_period_hours")
